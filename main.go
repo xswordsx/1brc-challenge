@@ -3,9 +3,11 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"flag"
 	"fmt"
 	"log"
 	"os"
+	"runtime/pprof"
 	"slices"
 	"time"
 )
@@ -16,6 +18,8 @@ type temp struct {
 	sum   float64
 	count uint
 }
+
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 
 func fastparse(b []byte) float64 {
 	if len(b) == 0 {
@@ -42,10 +46,19 @@ func fastparse(b []byte) float64 {
 }
 
 func main() {
+	flag.Parse()
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
 	start := time.Now()
 	defer func() { fmt.Println("Took ", time.Since(start)) }()
 
-	f, err := os.Open(os.Args[1])
+	f, err := os.Open(flag.Arg(0))
 	if err != nil {
 		log.Fatal(err)
 	}
