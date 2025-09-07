@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"slices"
-	"strconv"
 	"time"
 )
 
@@ -16,6 +15,30 @@ type temp struct {
 	max   float64
 	sum   float64
 	count uint
+}
+
+func fastparse(b []byte) float64 {
+	if len(b) == 0 {
+		return 0
+	}
+	base := int8(0)
+	neg := b[0] == '-'
+	i := 0
+	if neg {
+		i = 1
+	}
+	k := bytes.IndexRune(b, '.')
+	for ; i < k; i++ {
+		base = base*10 + int8(b[i]-'0')
+	}
+	total := float64(base)
+	if b[k+1]-'0' != 0 {
+		total += float64(10) / float64(b[k+1]-'0')
+	}
+	if neg {
+		return -1 * total
+	}
+	return total
 }
 
 func main() {
@@ -32,7 +55,7 @@ func main() {
 
 	scanner := bufio.NewScanner(f)
 	var name string
-	var tempS string
+	var tempS []byte
 	for scanner.Scan() {
 		if scanner.Err() != nil {
 			log.Fatal(scanner.Err())
@@ -40,13 +63,9 @@ func main() {
 		line := scanner.Bytes()
 		i := bytes.IndexByte(line, ';')
 		name = string(line[:i])
-		tempS = string(line[i+1:])
+		tempS = line[i+1:]
 
-		val, err := strconv.ParseFloat(tempS, 32)
-		if err != nil {
-			log.Fatal(err)
-		}
-
+		val := fastparse(tempS)
 		cn, ok := counts[name]
 		if !ok {
 			counts[name] = temp{
