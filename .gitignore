@@ -1,2 +1,4 @@
 1brc
 *.txt
+*.pprof
+.vscode/
